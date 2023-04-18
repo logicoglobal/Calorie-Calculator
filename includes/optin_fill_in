@@ -1,0 +1,35 @@
+
+var fields_to_fill = {"first_name":"","email":""};
+var form_class = 'form_class_ZR4eQ8xndOYf';
+var $captchaTemplate = '';
+
+var kartra_prefill_optin = function (form_hashed_id) {
+	jQuery("form.form_class_" + form_hashed_id + " input").each(function(){
+		if(typeof fields_to_fill[jQuery(this).attr("name")] !== 'undefined') {
+			jQuery(this).val(fields_to_fill[jQuery(this).attr("name")]);
+		}
+	});
+	jQuery("form.form_class_" + form_hashed_id + " select").each(function(){
+		if(typeof fields_to_fill[jQuery(this).attr("name")] !== 'undefined') {
+			try {
+                jQuery(this).val(fields_to_fill[jQuery(this).attr("name")]);
+				jQuery('[value="' + fields_to_fill[jQuery(this).attr("name")] + '"]', this).prop('selected', true);
+
+				if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
+		            jQuery("[name='"+jQuery(this).attr("name")+"']").selectpicker('mobile');
+		        }
+		        jQuery("[name='"+jQuery(this).attr("name")+"']").selectpicker('refresh');
+			} catch(e){}
+		}
+	});
+};
+
+
+(function() {
+	kartra_prefill_optin('ZR4eQ8xndOYf');
+
+	if ($captchaTemplate) {
+		jQuery('.js_captcha_wrapper').html($captchaTemplate);
+	}
+})();
+

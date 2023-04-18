@@ -1,0 +1,38 @@
+function apply_santitation(sanitationRules){if(typeof kartra_checkout_jquery==='undefined'&&typeof window.jQuery!=='undefined'){kartra_checkout_jquery=window.jQuery;}
+var validationRules={numeric:function(element,key){var regex=new RegExp(sanitationRules['numeric']),result=true;if(!regex.test(key)||!verifyZeroValue(element.val())){result=false;}
+return result;},decimal:function(element,key){var regex=new RegExp(sanitationRules['decimal']),result=true;if(!regex.test(key)||((element.val().match(/\./g)||[]).length>1&&key==='.')||!verifyValueLength(element.val())){result=false;}
+if(!verify_decimal_value(element.val())){result=false;}
+return result;},letters:function(element,key){var regex=new RegExp(sanitationRules['letters']),result=true;if(!regex.test(key)){result=false;}
+return result;},letters_no_space:function(element,key){var regex=new RegExp(sanitationRules['letters_no_space']),result=true;if(!regex.test(key)){result=false;}
+return result;},letters_numbers:function(element,key){var regex=new RegExp(sanitationRules['letters_numbers']),result=true;if(!regex.test(key)){result=false;}
+return result;},letters_numbers_no_space:function(element,key){var regex=new RegExp(sanitationRules['letters_numbers_no_space']),result=true;if(!regex.test(key)){result=false;}
+return result;},domain:function(element,key){var regex=new RegExp(sanitationRules['domain']),result=true;if(!regex.test(key)){result=false;}
+return result;},email:function(element,key){var regex=new RegExp(sanitationRules['email']),result=true;if(!regex.test(key)){result=false;}
+return result;},color:function(element,key){var regex=new RegExp(sanitationRules['color']),result=true;if(!regex.test(key)||((element.val().match(/#/g)||[]).length>1&&key==='#')){result=false;}
+return result;},normal:function(element,key){return true;},nothing:function(element,key){return false;},name:function(element,key){var regex=new RegExp(sanitationRules['name']),result=true;if(!regex.test(key)){result=false;}
+return result;},other_name:function(element,key){var regex=new RegExp(sanitationRules['other_name']),result=true;if(!regex.test(key)){result=false;}
+return result;},address_company:function(element,key){var regex=new RegExp(sanitationRules['address_company']),result=true;if(!regex.test(key)){result=false;}
+return result;},margins:function(element,key){var regex=new RegExp(sanitationRules['margins']),result=true;if(!regex.test(key)){result=false;}
+return result;},ip:function(element,key){var regex=new RegExp(sanitationRules['ip']),result=true;if(!regex.test(key)){result=false;}
+return result;},product_name:function(element,key){var result=true;if((key==='<'||key==='>'||key==='"'||key==="'")){result=false;}
+return result;},custom_field:function(element,key){var regex=new RegExp(sanitationRules['custom_field']),result=true;if(!regex.test(key)){result=false;}
+return result;},broadcast_percentage:function(element,key){var regex=new RegExp(sanitationRules['broadcast_percentage']),result=true;if(!regex.test(key)||element.val().length>2){result=false;}
+return result;},discount_coupon:function(element,key){var regex=new RegExp(sanitationRules['discount_coupon']),result=true;if(!regex.test(key)||element.val().length>50){result=false;}
+return result;}};kartra_checkout_jquery(document).on('input','.js_kartra_santitation',function(e){var $self=kartra_checkout_jquery(this),typesTxt=$self.attr('data-santitation-type');if('undefined'===typeof typesTxt){return;}
+var types=typesTxt.split('|');types.forEach(function(type){if('undefined'!==typeof sanitationRules[type]){var currentValue=$self.val(),lastValue=$self.data('last-value');if('undefined'===typeof lastValue){$self.data('last-value','');lastValue='';}
+if('nothing'===type){$self.val(lastValue);}else{var added=findCharacters(currentValue,lastValue),removed=findCharacters(lastValue,currentValue),pasted=added.length>1||(!added&&!removed);if(pasted){if('decimal'===type){if(!verify_decimal_value(currentValue)){$self.val(lastValue);}}
+if(!isValidString($self,currentValue,type,validationRules)){$self.val(lastValue);}}else if(!removed){if(!isValidChar($self,added,type,validationRules)){$self.val(lastValue);}}}
+$self.data('last-value',$self.val());}});});kartra_checkout_jquery(document).on('focus','.js_kartra_santitation',function(e){var $self=kartra_checkout_jquery(this),currentValue=$self.val();$self.data('last-value',currentValue);});}
+function findCharacters(value,previousValue){var character='';for(var i=0;i<value.length;i++){var string=value.substr(0,i)+value.substr(i+value.length-previousValue.length);if(string===previousValue){character=value.substr(i,value.length-previousValue.length);}}
+return character;}
+function isValidChar($element,char,validationType,validationRules){return validationRules[validationType]($element,char);}
+function isValidString($element,string,validationType,validationRules){for(var i=0;i<string.length;i++){if(!isValidChar($element,string.substr(i,1),validationType,validationRules)){return false;}}
+return true;}
+function verify_decimal_value(string){var parts=string.split('.');if(parts[1]!==undefined){if(parts[1].length>2){return false;}}
+return true;}
+function verifyValueLength(value)
+{var result=true,acceptedLength=7;if(1===(value.match(/\./g)||[]).length){var parts=value.split('.');acceptedLength=10;if(parts[1]!==undefined){if(1===parts[1].length){acceptedLength=9;}}}
+if(acceptedLength<value.length){result=false;}
+return result;}
+function verifyZeroValue(value){var result=true;if(2<=value.length&&'0'===value.charAt(0)){result=false;}
+return result;}

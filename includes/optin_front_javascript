@@ -1,0 +1,340 @@
+jQuery(document).ready(function() {
+    //Custom dropdown close
+    jQuery(document).click(function(event) {
+        if (jQuery(event.target).closest('.kartra_optin_selectpicker').length === 0 ) {
+            jQuery('.kartra_optin_dropdown-menu').hide();
+        }
+    });
+
+    //Custom dropdown open
+    jQuery(document).on('click', '[data-toggle="kartra_dropdown"]', function() {
+        jQuery(this).parent().find('.kartra_optin_dropdown-menu').show();
+    });
+
+    //Handle custom dropdown mimicking the selectpicker behaviour
+    jQuery(document).on('click', '.kartra_optin_customDropdown li a', function(){
+        var $element = jQuery(this),
+            $parent = $element.parents('li:first'),
+            $bootstrapSelect = $element.parents('.kartra_optin_bootstrap-select:first'),
+            $customDropdown = $element.parents('.kartra_optin_customDropdown:first');
+
+        if (!$parent.hasClass('disabled')) {
+            var identifier = jQuery('span', $element).attr('data-for'),
+                value = jQuery('span', $element).attr('data-value').toString(),
+                text = jQuery('.text', $element).text(),
+                selectedText = '';
+
+            if (identifier === 'country_code') {
+                selectedText = '+' + value;
+            } else {
+                selectedText = text;
+            }
+
+            if (value !== '' && typeof value !== 'undefined') {
+                jQuery('.kartra_optin_filter-option', $bootstrapSelect).text(selectedText).addClass('selected');
+                jQuery('input[name="' + identifier + '"]').val(value);
+
+                jQuery('li', $customDropdown).removeClass('selected');
+                $parent.addClass('selected');
+            }
+
+            $customDropdown.hide();
+        }
+    });
+
+    jQuery(document).on("click", ".kartra_optin_radio", function () {
+        jQuery("[name='" + jQuery(this).attr("name") + "']").parents(".kartra_optin_radio_parent").removeClass("ez-selected").removeClass("kartra_optin-selected");
+        jQuery("[name='" + jQuery(this).attr("name") + "']").each(function (index, element) {
+            if (jQuery(element).is(":checked")) {
+                jQuery(element).parents(".kartra_optin_radio_parent").addClass("ez-selected").addClass("kartra_optin-selected");
+            }
+        });
+    });
+
+    jQuery(document).on("click", ".kartra_optin_chk", function () {
+        if (jQuery(this).is(":checked")) {
+            jQuery(this).parents(".kartra_optin_chk_parent").addClass("ez-checked").addClass("kartra_optin-checked");
+        } else {
+            jQuery(this).parents(".kartra_optin_chk_parent").removeClass("ez-checked").removeClass(
+                "kartra_optin-checked");
+        }
+    });
+
+    jQuery(document).on('change', '#terms_ZR4eQ8xndOYf', function() {
+        kartra_validate_optin(jQuery(this).parents('.form_class_ZR4eQ8xndOYf:first'), 'ZR4eQ8xndOYf');
+    });
+
+    jQuery(document).on('change', '.form_class_ZR4eQ8xndOYf .js_gdpr_communications_check, .form_class_ZR4eQ8xndOYf .js_gdpr_terms_check', function() {
+        kartra_validate_optin(jQuery(this).parents('.form_class_ZR4eQ8xndOYf:first'), 'ZR4eQ8xndOYf');
+    });
+
+    jQuery(document).on('click', '.form_class_ZR4eQ8xndOYf .js_gdpr_popover_close', function() {
+        jQuery(this).parents('.js_kartra_gdpr_popover').hide();
+    });
+
+    jQuery(document)
+        .off('click','.form_class_ZR4eQ8xndOYf .submit_button_ZR4eQ8xndOYf, .form_class_ZR4eQ8xndOYf .kartra_optin_submit_btn')
+        .on('click','.form_class_ZR4eQ8xndOYf .submit_button_ZR4eQ8xndOYf, .form_class_ZR4eQ8xndOYf .kartra_optin_submit_btn', function (e) {
+
+        e.preventDefault();
+
+        var $submitButton = jQuery(this),
+            $the_form           = $submitButton.parents('.form_class_ZR4eQ8xndOYf form'),
+            error               = false,
+            optinHash           = $the_form.attr('data-kt-value'),
+            captchaVerification = null;
+
+        disable_submit_button($submitButton);
+
+        $the_form.find('.required_ZR4eQ8xndOYf').each(function () {
+            var $field = jQuery(this);
+
+            if ($field.is(':radio') || $field.is(':checkbox')) {
+                var $fieldElement = $the_form.find('[name="' + $field.attr('name') + '"]'),
+                    $siblings = $fieldElement.siblings('small');
+
+                if ($the_form.find('[name="' + $field.attr('name') + '"]:checked').length === 0) {
+                    if ($siblings.length) {
+                        $siblings.addClass('form_ZR4eQ8xndOYf_error_border');
+                    } else {
+                        $fieldElement.parent().addClass('form_ZR4eQ8xndOYf_error_border');
+                    }
+
+                    error = true;
+                    return;
+                } else {
+                    if ($siblings.length) {
+                        $siblings.removeClass('form_ZR4eQ8xndOYf_error_border');
+                    } else {
+                        $fieldElement.parent().removeClass('form_ZR4eQ8xndOYf_error_border');
+                    }
+                }
+            }
+
+            if ($field.is('select') || $field.is(':hidden')) {
+                if ($field.val() == '' || $field.val() == null) {
+                    error = true;
+
+                    //used by opt-ins in Pages/videos
+                    if ($field.is(':hidden')) {
+                        $field.parent().find('.kartra_optin_bootstrap-select button.dropdown-toggle').addClass('form_ZR4eQ8xndOYf_error_border');
+                    } else {
+                        $field.parent().find('button.dropdown-toggle').addClass('form_ZR4eQ8xndOYf_error_border');
+                    }
+                } else {
+                    //use by opt-ins in Pages/videos
+                    if ($field.is(':hidden')) {
+                        $field.parent().find('.kartra_optin_bootstrap-select button.dropdown-toggle').removeClass('form_ZR4eQ8xndOYf_error_border');
+                    } else {
+                        $field.parent().find('button.dropdown-toggle').removeClass('form_ZR4eQ8xndOYf_error_border');
+                    }
+                }
+            } else {
+                if (($field.val() == ''|| $field.val() == null) && !this.classList.contains('btn-group')) {
+                    $field.addClass('form_ZR4eQ8xndOYf_error_border');
+                    error = true;
+                    return;
+                } else {
+                    if ($field.attr('name') == 'email' && !validateEmail($field.val())) {
+                        $field.addClass('form_ZR4eQ8xndOYf_error_border');
+                        error = true;
+                        return;
+                    } else {
+                        $field.removeClass('form_ZR4eQ8xndOYf_error_border');
+                    }
+                }
+            }
+        });
+
+        if (error) {
+            return false;
+        }
+
+        if ($the_form.find('[name="captcha"]').length) {
+            var captchaPattern   = $the_form.find('[name="captcha"]').val(),
+                captchaPatternId = $the_form.find('[name="captcha_patterns_id"]').val(),
+                fillColor        = $the_form.find('[name="captcha"]').css('color');
+            
+            captchaVerification = verifyCaptcha(optinHash, captchaPattern, captchaPatternId, fillColor);
+        }
+
+        Promise.resolve(captchaVerification).then(function(response) {
+            if (response && !response.success) {
+                $the_form.find('.js_kartra_captcha').html(response.new_svg.svg);
+                $the_form.find('[name="captcha_patterns_id"]').val(response.new_svg.captcha_patterns_id);
+                $the_form.find('[name="captcha"]').addClass('form_ZR4eQ8xndOYf_error_border');
+            } else {
+                if ($the_form.hasClass('optin_form_for_video') || $the_form.hasClass('js_kartra_intercept_actions')) {
+                    var event = new CustomEvent('kartraInterceptAction', {
+                        bubbles: true,
+                        detail: {
+                            type: 'submit',
+                            payload: $the_form[0],
+                        },
+                    });
+
+                    $the_form[0].dispatchEvent(event);
+                } else {
+                    $the_form.submit();
+                }
+            }
+        });
+    });
+
+    jQuery(document).on('click', 'input, select, button, textarea', function() {
+        jQuery(this).removeClass('form_ZR4eQ8xndOYf_error_border');
+
+        if (jQuery(this).is(':radio') || jQuery(this).is(':checkbox')) {
+            jQuery(this).parents('.kartra_optin_cg').find('small').removeClass('form_ZR4eQ8xndOYf_error_border');
+        }
+    });
+
+    jQuery('.js_utility_popover_close').on('click', function() {
+            jQuery(this).parents('.js_kartra_popover').hide();
+        });   
+    
+
+    if ('undefined' !== typeof window.jsVars &&
+        'undefined' !== typeof window.jsVars['gdpr_settings'] &&
+        'function' === typeof kartra_init_optin_gdpr) {
+
+        kartra_init_optin_gdpr('ZR4eQ8xndOYf');
+    }
+});
+function kartra_init_gdpr_popover() {
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+        jQuery('.js_kartra_gdpr_popover').find(".kartra_optin_popover-content").removeClass("kartra_optin_popover-content-npadding");
+        jQuery(".js_kartra_popover_gdpr_trigger").on("click",function() {
+            jQuery('.js_kartra_gdpr_popover').fadeIn(300);
+            var distanceGDPR = jQuery(this).parents(".js_gdpr_terms")[0].getBoundingClientRect().top;
+            if (distanceGDPR > 310 ){
+                jQuery(this).parents(".js_gdpr_terms").find(".js_kartra_gdpr_popover .kartra_optin_popover-content").css("max-height", "300px");
+                
+            }else{
+                jQuery(this).parents(".js_gdpr_terms").find(".js_kartra_gdpr_popover .kartra_optin_popover-content").css("max-height", (distanceGDPR - 10));
+            }
+        })
+
+    } else {
+        var hovering = false;
+
+        jQuery('.js_kartra_gdpr_popover').find(".kartra_optin_popover-content").addClass("kartra_optin_popover-content-npadding");
+        jQuery(".js_gdpr_button_popover_trigger").hover(function() {
+            var $wrapper = jQuery(this).parents('.js_gdpr_terms');
+
+            $wrapper.find('.js_kartra_gdpr_popover').fadeIn(300);
+            var distanceGDPR = $wrapper[0].getBoundingClientRect().top;
+
+            if (distanceGDPR > 310 ){
+                $wrapper.find(".js_kartra_gdpr_popover .kartra_optin_popover-content").css("max-height", "300px");
+            } else {
+                $wrapper.find(".js_kartra_gdpr_popover .kartra_optin_popover-content").css("max-height", (distanceGDPR - 10));
+            }
+         }, function() {
+            var $wrapper = jQuery(this).parents('.js_gdpr_terms');
+
+            setTimeout(function() {
+                if (!hovering) {
+                    $wrapper.find('.js_kartra_gdpr_popover').hide();
+                }
+            }, 200);
+        });
+
+        jQuery(document).on('mouseenter', '.js_kartra_gdpr_popover', function() {
+            hovering = true;
+        });
+
+        jQuery(document).on('mouseleave', '.js_kartra_gdpr_popover', function() {
+            hovering = false;
+
+            jQuery(this).hide();
+        });
+    }
+
+    jQuery('body').on('click', function(e) {
+        if (jQuery(e.target).hasClass('js_kartra_popover') ||
+            jQuery(e.target).parents('.js_kartra_popover').length > 0 ||
+            jQuery(e.target).hasClass('js_kartra_popover_trigger') ||
+            jQuery(e.target).parents('.js_kartra_popover_trigger').length > 0)  {
+            if (jQuery(e.target).hasClass('js_kartra_popover_trigger') || jQuery(e.target).parents('.js_kartra_popover_trigger').length > 0) {
+                if (jQuery(e.target).hasClass('js_kartra_popover_trigger')) {
+                    element = jQuery(e.target);
+                } else {
+                    element = jQuery(e.target).parents('.js_kartra_popover_trigger')
+                }
+
+                var the_popover = typeof jQuery(element).attr('data-popover') !== 'undefined' ? jQuery(element).attr('data-popover') : 'js_kartra_gdpr_popover';
+                jQuery(".js_kartra_popover").filter(function() { return jQuery(this).css('display') != 'none'}).not(jQuery('.'+the_popover)).find(" .js_utility_popover_close").trigger('click');
+            }
+        } else {
+            jQuery(".js_kartra_popover").filter(function() { return jQuery(this).css('display') != 'none'}).find(".js_utility_popover_close").trigger('click');
+        }
+
+    });
+}
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+//disable optin submit button
+function disable_submit_button(button) {
+	button.attr('disabled', true);
+	setTimeout(function(){
+		button.attr('disabled', false);
+	}, 3000);
+}
+
+function kartra_init_optin_gdpr(form_id) {
+    var optin_id = form_id;
+    var $form = jQuery('.form_class_'+form_id);
+    var optin_settings = window.jsVars['gdpr_settings'];
+    if (optin_settings.display == true) {
+        if (optin_settings.terms_display || optin_settings.communications_display) {
+            $form.find('.js_gdpr_wrapper').show();
+        }
+        $form.find('.js_gdpr_terms')[optin_settings.terms_display ? 'show' : 'hide']();
+        $form.find('.js_gdpr_communications')[optin_settings.communications_display ? 'show' : 'hide']();
+        $form.find('.js_gdpr_terms_check').attr('checked', optin_settings.terms_checked);
+        $form.find('.js_gdpr_communications_check').attr('checked', optin_settings.communications_checked);
+    }
+    kartra_init_gdpr_popover();
+    kartra_validate_optin($form, form_id) 
+}
+
+function kartra_validate_optin(form, form_id) {
+    var optin_id = form_id;
+    var valid = true;
+    var optin_settings = window.jsVars['gdpr_settings'];
+    if (form.find('#terms_'+form_id).length > 0 && !form.find('#terms_'+form_id).is(':checked')) {
+        valid = false;
+    }
+
+    if (optin_settings.display) {
+        if (valid && optin_settings.communications_required && !form.find('[name="gdpr_communications"]').is(':checked')) {
+            valid = false;
+        }
+
+        if (valid && optin_settings.terms_required && !form.find('[name="gdpr_terms"]').is(':checked')) {
+            valid = false;
+        }
+    }
+    
+    $submitButton = form.find('.submit_button_'+optin_id+', .kartra_optin_submit_btn');
+    $submitButton.attr('disabled', !valid);
+}
+
+function verifyCaptcha(optinHash, captchaPattern, captchaPatternId, fillColor) {
+    return jQuery.ajax({
+        url       : 'https://app.kartra.com/process/verifyCaptcha/' + optinHash,
+        type      : 'POST',
+        data      : {
+            'captcha_pattern'     : captchaPattern,
+            'captcha_patterns_id' : captchaPatternId,
+            'fill_color'          : fillColor
+        },
+        xhrFields : {
+            withCredentials : true
+        }
+    });
+}
